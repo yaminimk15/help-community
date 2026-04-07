@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Help Community</title>
+
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      display:flex;
+      background:#eef2f7;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width:220px;
+      background: linear-gradient(180deg, #1e293b, #0f172a);
+      color:white;
+      padding:20px;
+      height:100vh;
+    }
+
+    .sidebar h2 {
+      margin-bottom:20px;
+    }
+
+    .sidebar button {
+      width:100%;
+      padding:12px;
+      margin:10px 0;
+      background:#334155;
+      border:none;
+      color:white;
+      border-radius:8px;
+      cursor:pointer;
+      transition:0.3s;
+    }
+
+    .sidebar button:hover {
+      background:#475569;
+    }
+
+    /* CONTENT */
+    .content {
+      flex:1;
+      padding:30px;
+    }
+
+    h2 {
+      margin-bottom:15px;
+    }
+
+    /* FORM */
+    .form {
+      background:white;
+      padding:20px;
+      border-radius:12px;
+      box-shadow:0 5px 15px rgba(0,0,0,0.1);
+      margin-bottom:20px;
+    }
+
+    input, select {
+      width:100%;
+      padding:10px;
+      margin:8px 0;
+      border-radius:8px;
+      border:1px solid #ccc;
+    }
+
+    .submit-btn {
+      background:#2563eb;
+      color:white;
+      padding:10px;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+      margin-top:10px;
+    }
+
+    .submit-btn:hover {
+      background:#1d4ed8;
+    }
+
+    /* STATS */
+    .stats {
+      margin:15px 0;
+      font-weight:bold;
+    }
+
+    /* CARDS */
+    .card {
+      background:white;
+      padding:15px;
+      margin:15px 0;
+      border-radius:12px;
+      box-shadow:0 4px 10px rgba(0,0,0,0.08);
+      transition:0.2s;
+    }
+
+    .card:hover {
+      transform:translateY(-3px);
+    }
+
+    .title {
+      font-size:18px;
+      font-weight:bold;
+      margin-bottom:5px;
+    }
+
+    .tag-high { color:red; font-weight:bold; }
+    .tag-medium { color:orange; font-weight:bold; }
+    .tag-low { color:green; font-weight:bold; }
+
+    .btn {
+      padding:6px 12px;
+      margin:5px 5px 0 0;
+      border:none;
+      border-radius:6px;
+      cursor:pointer;
+    }
+
+    .help-btn { background:#22c55e; color:white; }
+    .done-btn { background:#3b82f6; color:white; }
+    .del-btn { background:#ef4444; color:white; }
+  </style>
+</head>
+
+<body>
+
+<script>
+if (!localStorage.getItem("user")) {
+  window.location.href = "login.html";
+}
+</script>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <h2>Help App</h2>
+
+  <button onclick="filterAll()">All Requests</button>
+  <button onclick="filterMy()">My Requests</button>
+  <button onclick="filterHigh()">High Priority</button>
+  <button onclick="logout()">Logout</button>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+<div class="form">
+  <h2>🆘 Add Help Request</h2>
+
+  <input id="title" placeholder="Title">
+  <input id="desc" placeholder="Description">
+  <input id="loc" placeholder="Location">
+  <input id="phone" placeholder="Phone">
+
+  <label><b>🚨 Urgency Level</b></label>
+  <select id="urgency">
+    <option value="Low">Low</option>
+    <option value="Medium">Medium</option>
+    <option value="High">High</option>
+  </select>
+
+  <button class="submit-btn" onclick="addHelp()">Submit</button>
+</div>
+
+<div class="stats">
+  Total: <span id="total"></span> |
+  High: <span id="high"></span> |
+  Completed: <span id="done"></span>
+</div>
+
+<div id="list"></div>
+
+</div>
+
+<script>
+let allData = [];
+
+// LOGOUT
+function logout(){
+  localStorage.removeItem("user");
+  window.location.href = "login.html";
+}
+
+// URGENCY TAG
+function urgencyTag(u){
+  if(u==="High") return "<span class='tag-high'>🔥 HIGH</span>";
+  if(u==="Medium") return "<span class='tag-medium'>⚠️ MEDIUM</span>";
+  return "<span class='tag-low'>✅ LOW</span>";
+}
+
+// ADD HELP
+async function addHelp(){
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  await fetch('http://localhost:8081/help',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      title:title.value,
+      description:desc.value,
+      location:loc.value,
+      userName:user.name,
+      phone:phone.value,
+      urgency:urgency.value,
+      status:"Pending"
+    })
+  });
+
+  title.value=""; desc.value=""; loc.value=""; phone.value="";
+  load();
+}
+
+// LOAD
+async function load(){
+  const res = await fetch('http://localhost:8081/help');
+  allData = await res.json();
+  render(allData);
+}
+
+// RENDER
+function render(data){
+  list.innerHTML='';
+  updateStats(data);
+
+  data.forEach(h=>{
+    list.innerHTML+=`
+    <div class="card">
+      <div class="title">${h.title}</div>
+      ${h.description}<br><br>
+
+      👤 ${h.userName} | 📞 ${h.phone}<br>
+      📍 ${h.location}<br><br>
+
+      ${urgencyTag(h.urgency)} | 📊 ${h.status}<br><br>
+
+      <button class="btn help-btn" onclick="accept(${h.id})">I Can Help</button>
+      <button class="btn done-btn" onclick="complete(${h.id})">Complete</button>
+      <button class="btn del-btn" onclick="del(${h.id})">Delete</button>
+    </div>`;
+  });
+}
+
+// ACTIONS
+async function accept(id){
+  await fetch(`http://localhost:8081/help/${id}`,{
+    method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({status:"Accepted"})
+  });
+  load();
+}
+
+async function complete(id){
+  await fetch(`http://localhost:8081/help/${id}`,{
+    method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({status:"Completed"})
+  });
+  load();
+}
+
+async function del(id){
+  await fetch(`http://localhost:8081/help/${id}`,{method:'DELETE'});
+  load();
+}
+
+// FILTERS
+function filterAll(){ render(allData); }
+
+function filterHigh(){
+  render(allData.filter(h=>h.urgency==="High"));
+}
+
+function filterMy(){
+  const user = JSON.parse(localStorage.getItem("user"));
+  render(allData.filter(h => h.userName === user.name));
+}
+
+// STATS
+function updateStats(data){
+  total.innerText=data.length;
+  high.innerText=data.filter(h=>h.urgency==="High").length;
+  done.innerText=data.filter(h=>h.status==="Completed").length;
+}
+
+load();
+</script>
+
+</body>
+</html>

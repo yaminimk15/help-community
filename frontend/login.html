@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login</title>
+
+  <style>
+    * {
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      overflow:hidden;
+      transition:0.4s;
+    }
+
+    /* 🌙 DARK MODE DEFAULT */
+    body.dark {
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color:white;
+    }
+
+    /* ☀️ LIGHT MODE */
+    body.light {
+      background: linear-gradient(135deg, #4f46e5, #06b6d4);
+      color:black;
+    }
+
+    /* FLOATING SHAPES */
+    .circle {
+      position:absolute;
+      border-radius:50%;
+      opacity:0.3;
+      animation:float 8s infinite ease-in-out;
+    }
+
+    .c1 { width:150px; height:150px; background:#22c55e; top:10%; left:10%; }
+    .c2 { width:200px; height:200px; background:#3b82f6; bottom:10%; right:10%; }
+    .c3 { width:100px; height:100px; background:#f59e0b; top:50%; left:70%; }
+
+    @keyframes float {
+      0%,100% { transform:translateY(0); }
+      50% { transform:translateY(-30px); }
+    }
+
+    /* LOGIN CARD */
+    .login-box {
+      position:relative;
+      z-index:10;
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(15px);
+      padding:40px;
+      border-radius:15px;
+      width:320px;
+      text-align:center;
+      box-shadow:0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    input {
+      width:100%;
+      padding:12px;
+      margin:10px 0;
+      border:none;
+      border-radius:8px;
+    }
+
+    button {
+      width:100%;
+      padding:12px;
+      margin-top:10px;
+      border:none;
+      border-radius:8px;
+      background:#22c55e;
+      color:white;
+      cursor:pointer;
+    }
+
+    button:hover {
+      background:#16a34a;
+    }
+
+    .toggle {
+      position:absolute;
+      top:20px;
+      right:20px;
+      padding:8px 12px;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+      background:#111;
+      color:white;
+    }
+
+    .link {
+      margin-top:10px;
+      cursor:pointer;
+    }
+
+    #msg { margin-top:10px; color:red; }
+
+  </style>
+</head>
+
+<body class="dark">
+
+<!-- 🌗 MODE TOGGLE -->
+<button class="toggle" onclick="toggleMode()">🌙 / ☀️</button>
+
+<!-- FLOATING SHAPES -->
+<div class="circle c1"></div>
+<div class="circle c2"></div>
+<div class="circle c3"></div>
+
+<!-- LOGIN BOX -->
+<div class="login-box">
+  <h2>🔐 Login</h2>
+
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+
+  <button onclick="login()">Login</button>
+
+  <p id="msg"></p>
+
+  <p class="link" onclick="goSignup()">Sign up</p>
+</div>
+
+<script>
+// 🌗 DARK / LIGHT MODE
+function toggleMode(){
+  if(document.body.classList.contains("dark")){
+    document.body.classList.remove("dark");
+    document.body.classList.add("light");
+  } else {
+    document.body.classList.remove("light");
+    document.body.classList.add("dark");
+  }
+}
+
+// 🔐 LOGIN
+async function login(){
+  const res = await fetch('http://localhost:8081/users/login',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      email:email.value,
+      password:password.value
+    })
+  });
+
+  const data = await res.json();
+
+  if(data){
+    localStorage.setItem("user", JSON.stringify(data));
+    window.location.href="index.html";
+  } else {
+    msg.innerText="Invalid login ❌";
+  }
+}
+
+// 🔁 NAVIGATION
+function goSignup(){
+  window.location.href="signup.html";
+}
+</script>
+
+</body>
+</html>

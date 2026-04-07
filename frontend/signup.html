@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Signup</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .box {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+      width: 300px;
+    }
+
+    input {
+      padding: 10px;
+      width: 100%;
+      margin: 10px 0;
+    }
+
+    button {
+      padding: 10px;
+      width: 100%;
+      background: green;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .link {
+      margin-top: 10px;
+      color: blue;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="box">
+  <h2>Signup</h2>
+
+  <input id="name" placeholder="Name">
+  <input id="email" placeholder="Email">
+  <input id="password" placeholder="Password">
+
+  <button onclick="signup()">Register</button>
+
+  <p class="link" onclick="goLogin()">
+    Already have an account? Login
+  </p>
+</div>
+
+<script>
+async function signup() {
+  const user = {
+    name: document.getElementById('name').value,
+    email: document.getElementById('email').value,
+    password: document.getElementById('password').value
+  };
+
+  await fetch('http://localhost:8081/users', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(user)
+  });
+
+  alert("Signup successful!");
+  window.location.href = "login.html";
+}
+
+function goLogin() {
+  window.location.href = "login.html";
+}
+</script>
+
+</body>
+</html>
